@@ -4,3 +4,19 @@
 html {
   color-scheme: light dark;
 }
+/* Fix select dropdown in dark mode */
+@layer base {
+  select,
+  option {
+    background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1)) !important; /* slate-900 */
+    color: white !important;
+  }
+
+  @media (prefers-color-scheme: light) {
+    select,
+    option {
+      background-color: white !important;
+      color: black !important;
+    }
+  }
+}

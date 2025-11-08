@@ -6,16 +6,25 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-4">SeniorConnect</h3>
             <p className="text-gray-300">
-              Connecting experienced senior citizens with meaningful opportunities.
-            </p>
+Empowering seniors to keep contributing, inspiring, and growing.            </p>
           </div>
           
           <div>
             <h4 className="text-lg font-semibold mb-4">For Seniors</h4>
             <ul className="space-y-2 text-gray-300">
               <li><a href="/senior/register" className="hover:text-white">Register</a></li>
-              <li><a href="#" className="hover:text-white">Find Jobs</a></li>
-              <li><a href="#" className="hover:text-white">Resources</a></li>
+              <li>
+  <a
+    href="https://job-finder-zeta-eight.vercel.app"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="hover:text-white transition-colors duration-200"
+  >
+    Find Jobs
+  </a>
+</li>
+
+            
             </ul>
           </div>
           
@@ -23,7 +32,7 @@ export default function Footer() {
             <h4 className="text-lg font-semibold mb-4">For Companies</h4>
             <ul className="space-y-2 text-gray-300">
               <li><a href="/company/register" className="hover:text-white">Register</a></li>
-              <li><a href="#" className="hover:text-white">Post Jobs</a></li>
+
               <li><a href="#" className="hover:text-white">Find Talent</a></li>
             </ul>
           </div>
@@ -31,15 +40,15 @@ export default function Footer() {
           <div>
             <h4 className="text-lg font-semibold mb-4">Contact</h4>
             <ul className="space-y-2 text-gray-300">
-              <li>Email: info@seniorconnect.com</li>
-              <li>Phone: +1 (555) 123-4567</li>
-              <li>Address: 123 Career St, City</li>
+              <li>Email: info@SeniorConnect.com</li>
+              <li>Phone: +91 9234***160</li>
+              <li>Address: Bangalore, India</li>
             </ul>
           </div>
         </div>
         
         <div className="mt-8 pt-8 border-t border-gray-700 text-center text-gray-300">
-          <p>&copy; 2024 SeniorConnect. All rights reserved.</p>
+          <p>&copy; 2025 SeniorConnect. All rights reserved.</p>
         </div>
       </div>
     </footer>

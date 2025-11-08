@@ -107,7 +107,8 @@ export default function Hero() {
           <span className="hidden h-1 w-1 rounded-full bg-slate-400/60 sm:inline-block" />
           <span>🔒 Secure & privacy-first</span>
           <span className="hidden h-1 w-1 rounded-full bg-slate-400/60 sm:inline-block" />
-          <span>🌗 Dark mode ready</span>
+          <span>💼 Where experience meets opportunity</span>
+
         </div>
       </div>
     </section>

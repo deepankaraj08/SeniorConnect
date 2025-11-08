@@ -1,38 +1,16 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
+import { useJobs } from '@/context/JobsContext'; // ← shared jobs store
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 
 export default function SeniorDashboard() {
   const { user } = useAuth();
+  const { jobs } = useJobs(); // ← read jobs posted by companies (and seed)
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('profile');
-
-  // ---- Mock data (keep/change as needed) ----
-  const [jobs] = useState([
-    {
-      id: 1,
-      title: 'Financial Consultant',
-      company: 'TechCorp Inc.',
-      location: 'Remote',
-      type: 'part-time',
-      salary: '$50–75/hr',
-      skills: ['Accounting', 'Financial Analysis', 'Excel'],
-      posted: '2 days ago',
-    },
-    {
-      id: 2,
-      title: 'Marketing Advisor',
-      company: 'StartupXYZ',
-      location: 'Hybrid',
-      type: 'consultancy',
-      salary: '$40–60/hr',
-      skills: ['Marketing', 'Strategy', 'Branding'],
-      posted: '1 week ago',
-    },
-  ]);
 
   const [applications] = useState([
     {
@@ -65,7 +43,7 @@ export default function SeniorDashboard() {
   const skills = Array.isArray(user.skills)
     ? user.skills
     : typeof user.skills === 'string'
-      ? user.skills.split(',').map(s => s.trim()).filter(Boolean)
+      ? user.skills.split(',').map((s) => s.trim()).filter(Boolean)
       : [];
   const preference = user.preference || user.workPreferences || '—';
   const email = user.email || user.contact || '—';
@@ -101,7 +79,7 @@ export default function SeniorDashboard() {
         {/* Tabs */}
         <div className="border-b border-slate-200 dark:border-slate-700 mb-6">
           <nav className="-mb-px flex gap-6">
-            {['profile', 'jobs', 'applications'].map(tab => (
+            {['profile', 'jobs', 'applications'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -157,7 +135,7 @@ export default function SeniorDashboard() {
                     </label>
                     {skills.length ? (
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {skills.slice(0, 20).map(skill => (
+                        {skills.slice(0, 20).map((skill) => (
                           <span
                             key={skill}
                             className="rounded-full border border-slate-300/70 bg-white/70 px-3 py-1 text-sm text-slate-700 shadow-sm dark:border-white/15 dark:bg-white/10 dark:text-slate-200"
@@ -203,7 +181,7 @@ export default function SeniorDashboard() {
           </div>
         )}
 
-        {/* JOBS */}
+        {/* JOBS (from shared store) */}
         {activeTab === 'jobs' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between gap-4">
@@ -227,26 +205,45 @@ export default function SeniorDashboard() {
               />
             ) : (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {jobs.map(job => (
-                  <div key={job.id} className="rounded-2xl border border-slate-200/70 bg-white/70 p-6 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
-                    <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">{job.title}</h3>
+                {jobs.map((job) => (
+                  <div
+                    key={job.id}
+                    className="rounded-2xl border border-slate-200/70 bg-white/70 p-6 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5"
+                  >
+                    <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+                      {job.title}
+                    </h3>
+
+                    {/* We don’t store company in this demo; show location/workType */}
                     <p className="text-slate-600 dark:text-slate-300 mb-2">
-                      {job.company} • {job.location}
+                      {job.location || '—'}
                     </p>
+
                     <div className="mb-3 flex items-center gap-4">
                       <span className="rounded bg-green-100 px-2 py-1 text-sm text-green-800 dark:bg-green-900 dark:text-green-200">
-                        {job.type}
+                        {job.workType || '—'}
                       </span>
-                      <span className="font-semibold text-slate-900 dark:text-white">{job.salary}</span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400">• {job.posted}</span>
+                      <span className="font-semibold text-slate-900 dark:text-white">
+                        {job.salaryRange || '—'}
+                      </span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                        • {job.posted}
+                      </span>
                     </div>
-                    <div className="mb-4 flex flex-wrap gap-2">
-                      {job.skills.map(skill => (
-                        <span key={skill} className="rounded bg-slate-100 px-2 py-1 text-sm text-slate-700 dark:bg-slate-700 dark:text-slate-300">
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
+
+                    {!!(job.skillsRequired?.length) && (
+                      <div className="mb-4 flex flex-wrap gap-2">
+                        {job.skillsRequired.map((skill) => (
+                          <span
+                            key={skill}
+                            className="rounded bg-slate-100 px-2 py-1 text-sm text-slate-700 dark:bg-slate-700 dark:text-slate-300"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
                     <a
                       href={externalJobsUrl}
                       target="_blank"
@@ -283,7 +280,7 @@ export default function SeniorDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {applications.map(app => (
+                      {applications.map((app) => (
                         <tr key={app.id} className="border-b border-slate-200 dark:border-slate-700">
                           <td className="py-3 text-slate-900 dark:text-white">{app.jobTitle}</td>
                           <td className="py-3 text-slate-600 dark:text-slate-300">{app.company}</td>

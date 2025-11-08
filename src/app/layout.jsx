@@ -1,6 +1,7 @@
 import './globals.css';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { JobsProvider } from '@/context/JobsContext'; // ⬅️ add this
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
 
@@ -15,11 +16,13 @@ export default function RootLayout({ children }) {
       <body>
         <ThemeProvider>
           <AuthProvider>
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 dark:from-gray-900 dark:to-gray-800 transition-colors">
-              <Navbar />
-              <main>{children}</main>
-              <Footer />
-            </div>
+            <JobsProvider> {/* ⬅️ wrap the app so both dashboards share jobs */}
+              <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 dark:from-gray-900 dark:to-gray-800 transition-colors">
+                <Navbar />
+                <main>{children}</main>
+                <Footer />
+              </div>
+            </JobsProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

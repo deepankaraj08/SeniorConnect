@@ -20,3 +20,66 @@ html {
     }
   }
 }
+/* tailwind base already imported */
+/* Add this in src/app/globals.css (or global.css with Tailwind) */
+
+
+@layer components {
+  /* Cards */
+  .card {
+    @apply rounded-2xl border border-slate-200/70 bg-white/80 p-6 shadow-sm
+           backdrop-blur transition dark:border-white/10 dark:bg-white/5;
+  }
+  .card:hover {
+    @apply hover:-translate-y-0.5 hover:shadow-lg;
+  }
+
+  /* Primary button – gradient */
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white
+           shadow-md shadow-blue-600/30 transition active:translate-y-0 focus:outline-none
+           focus-visible:ring-4 focus-visible:ring-blue-600/30;
+    background-image: linear-gradient(to right, #2563eb, #0ea5e9, #22d3ee); /* from-blue-600 via-sky-500 to-cyan-400 */
+  }
+  .btn-primary:hover {
+    @apply opacity-90 -translate-y-0.5;
+  }
+
+  /* Secondary button */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white/70 px-4 py-2
+           text-sm font-semibold text-slate-900 shadow-sm backdrop-blur transition
+           hover:-translate-y-0.5 active:translate-y-0 focus:outline-none
+           focus-visible:ring-4 focus-visible:ring-slate-300/60
+           dark:border-white/15 dark:bg-white/10 dark:text-white;
+  }
+
+  /* Inputs / Select / Textarea */
+  .input-field {
+    @apply block w-full rounded-xl border border-slate-300 bg-white/80 px-4 py-2.5 text-slate-900
+           shadow-sm placeholder:text-slate-400 transition
+           focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500
+           dark:border-white/15 dark:bg-white/10 dark:text-white dark:focus:ring-sky-400/40;
+  }
+
+  /* Small tag (skills, etc.) */
+  .tag {
+    @apply rounded bg-slate-100 px-2 py-1 text-sm text-slate-700
+           dark:bg-slate-700 dark:text-slate-300;
+  }
+
+  /* Tab button base & active */
+  .tab-btn {
+    @apply relative py-2 px-1 border-b-2 font-medium text-sm capitalize transition
+           border-transparent text-slate-500 hover:text-slate-700
+           dark:hover:text-slate-300;
+  }
+  .tab-btn--active {
+    @apply border-blue-500 text-blue-600 dark:text-blue-400;
+  }
+  .tab-underline {
+    @apply pointer-events-none absolute inset-x-0 -bottom-[3px] h-0.5
+           bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 rounded-full
+           shadow-[0_0_8px_rgba(56,189,248,0.6)];
+  }
+}

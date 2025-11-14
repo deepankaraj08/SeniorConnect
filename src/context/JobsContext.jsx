@@ -1,95 +1,68 @@
+// src/context/JobsContext.jsx
 'use client';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-
-const JobsCtx = createContext(null);
-const STORAGE_KEY = 'sc_jobs_v1';
-
-// Some seed jobs so the UI isn’t empty on first run
-const SEED_JOBS = [
-  {
-    id: 1,
-    title: 'Financial Consultant',
-    applications: 5,
-    status: 'active',
-    posted: '2024-01-10',
-    location: 'Remote',
-    workType: 'part-time',
-    salaryRange: '$50–75/hr',
-    description: 'Advise on budgeting, forecasting, and reporting.',
-    requirements: 'CPA preferred. Experience with SaaS finance.',
-    skillsRequired: ['Accounting', 'Financial Analysis', 'Excel'],
-  },
-  {
-    id: 2,
-    title: 'Marketing Advisor',
-    applications: 0,
-    status: 'active',
-    posted: '2024-03-02',
-    location: 'Hybrid',
-    workType: 'consultancy',
-    salaryRange: '$40–60/hr',
-    description: 'Guide GTM, brand, and campaign planning for a growing startup.',
-    requirements: 'Past Director-level experience preferred.',
-    skillsRequired: ['Marketing', 'Strategy', 'Branding'],
-  },
-];
+const JobsContext = createContext();
 
 export function JobsProvider({ children }) {
-  const [jobs, setJobs] = useState(SEED_JOBS);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Load from localStorage once
-  useEffect(() => {
+  const fetchJobs = async (q = '') => {
+    setLoading(true);
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) setJobs(parsed);
+      const url = q ? `/api/jobs?q=${encodeURIComponent(q)}` : '/api/jobs';
+      const res = await fetch(url);
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        console.error('Failed fetchJobs', data);
+        setJobs([]);
+        return;
       }
-    } catch {}
-  }, []);
+      setJobs(data.data);
+    } catch (err) {
+      console.error('fetchJobs error', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Persist whenever jobs change
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
-    } catch {}
-  }, [jobs]);
+  const addJob = async (payload) => {
+    // optimistic UI: you can push a temporary item here if desired
+    const res = await fetch('/api/jobs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data?.error || 'Failed to add job');
+    }
+    // add to local state (newest first)
+    setJobs(prev => [data.data, ...prev]);
+    return data.data;
+  };
 
-  // Sync across tabs
-  useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === STORAGE_KEY && e.newValue) {
-        try {
-          const parsed = JSON.parse(e.newValue);
-          if (Array.isArray(parsed)) setJobs(parsed);
-        } catch {}
-      }
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
+  const removeJob = async (id) => {
+    // call DELETE
+    const res = await fetch(`/api/jobs?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data?.error || 'Failed to delete job');
+    }
+    setJobs(prev => prev.filter(j => (j._id || j.id) !== id));
+    return true;
+  };
 
-  const api = useMemo(() => {
-    const addJob = (job) => {
-      setJobs((prev) => {
-        const next = [{ ...job }, ...prev];
-        return next;
-      });
-    };
+  useEffect(() => { fetchJobs(); }, []);
 
-    const updateJob = (id, patch) => {
-      setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, ...patch } : j)));
-    };
-
-    return { jobs, addJob, updateJob };
-  }, [jobs]);
-
-  return <JobsCtx.Provider value={api}>{children}</JobsCtx.Provider>;
+  return (
+    <JobsContext.Provider value={{ jobs, loading, fetchJobs, addJob, removeJob }}>
+      {children}
+    </JobsContext.Provider>
+  );
 }
 
-export function useJobs() {
-  const ctx = useContext(JobsCtx);
-  if (!ctx) throw new Error('useJobs must be used within JobsProvider');
-  return ctx;
-}
+export const useJobs = () => useContext(JobsContext);

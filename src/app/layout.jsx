@@ -1,31 +1,26 @@
 import './globals.css';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
-import { JobsProvider } from '@/context/JobsContext'; // ⬅️ add this
-import Navbar from '@/components/ui/Navbar';
-import Footer from '@/components/ui/Footer';
+import { JobsProvider } from '@/context/JobsContext';
 
 export const metadata = {
-  title: 'SeniorConnect - Employment Platform for Senior Citizens',
-  description: 'Connecting experienced senior citizens with opportunities',
+  title: 'SeniorConnect',
+  description: 'Employment platform',
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body>
-        <ThemeProvider>
-          <AuthProvider>
-            <JobsProvider> {/* ⬅️ wrap the app so both dashboards share jobs */}
-              <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 dark:from-gray-900 dark:to-gray-800 transition-colors">
-                <Navbar />
-                <main>{children}</main>
-                <Footer />
-              </div>
-            </JobsProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        {/* 🌟 JobsProvider moved to the outermost layer to ensure it loads immediately 🌟 */}
+        <JobsProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </ThemeProvider>
+        </JobsProvider>
       </body>
     </html>
   );
-}
+};

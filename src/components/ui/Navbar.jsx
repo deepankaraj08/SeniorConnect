@@ -1,10 +1,10 @@
 'use client';
-
+import { useTheme } from '@/context/ThemeContext';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { useTheme } from '@/context/ThemeContext';
+
 
 export default function Navbar() {
   const { user, logout } = useAuth();

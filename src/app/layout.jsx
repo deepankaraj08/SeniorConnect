@@ -2,6 +2,8 @@ import './globals.css';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { JobsProvider } from '@/context/JobsContext';
+import Navbar from '@/components/ui/Navbar';
+import Footer from '@/components/ui/Footer';
 
 export const metadata = {
   title: 'SeniorConnect',
@@ -11,16 +13,27 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
-        {/* 🌟 JobsProvider moved to the outermost layer to ensure it loads immediately 🌟 */}
+      <body className="bg-slate-900 text-white">
+
         <JobsProvider>
           <ThemeProvider>
             <AuthProvider>
-              {children}
+
+              {/* ⭐ NAVBAR HERE ⭐ */}
+              <Navbar />
+
+              <main>
+                {children}
+              </main>
+
+              {/* ⭐ OPTIONAL FOOTER ⭐ */}
+              <Footer />
+
             </AuthProvider>
           </ThemeProvider>
         </JobsProvider>
+
       </body>
     </html>
   );
-};
+}

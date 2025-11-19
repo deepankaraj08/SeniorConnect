@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+// 🔧 CHANGE: also import loadResumeFromLocal
+import { saveResumeToLocal, loadResumeFromLocal } from "@/utils/storeResume";
+
 
 /* ------------------- Helper Functions ------------------- */
 
@@ -59,6 +62,27 @@ export default function SeniorRegister() {
     profilePhoto: null,      // file
     profilePhotoUrl: '',     // URL fetched from LinkedIn avatar
   });
+
+  // 🔧 CHANGE: use this to repopulate form when user comes back
+  useEffect(() => {
+    const saved = loadResumeFromLocal();
+    if (saved) {
+      setFormData((prev) => ({
+        ...prev,
+        name: saved.fullName || "",
+        age: saved.age || "",
+        gender: saved.gender || "",
+        location: saved.location || "",
+        skills: saved.skills || "",
+        experience: saved.experience || "",
+        contact: saved.email || "",
+        linkedin: saved.linkedin || "",
+        github: saved.github || "",
+        workPreferences: saved.workPreference || "",
+        profilePhotoUrl: saved.photo || "",
+      }));
+    }
+  }, []);
 
   const [prefill, setPrefill] = useState(null); // { name, photoUrl }
   const [fetchState, setFetchState] = useState('idle'); // 'idle' | 'loading' | 'done' | 'notfound'
@@ -225,8 +249,34 @@ export default function SeniorRegister() {
         profilePhotoUrl: formData.profilePhotoUrl || null,
       };
 
+      // still save to local for dashboard / resume
+      saveResumeToLocal({
+        fullName: formData.name,
+        age: formData.age,
+        gender: formData.gender,
+        location: formData.location,
+        skills: formData.skills,
+        experience: formData.experience,
+        email: formData.contact,
+        linkedin: formData.linkedin,
+        github: formData.github,
+        workPreference: formData.workPreferences,
+        photo: formData.profilePhotoUrl || null,
+      });
+
+      // Save to DB
+      await fetch("/api/senior/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
+      });
+
+      // Log in locally
       login(userData);
-      router.push('/senior/dashboard');
+
+      // Redirect
+      router.push("/senior/dashboard");
+
     } finally {
       setSubmitting(false);
     }
@@ -438,44 +488,45 @@ export default function SeniorRegister() {
             </div>
             {errors.linkedin && <p id="linkedin-err" className={errorClass}>{errors.linkedin}</p>}
           </div>
-{/* Work preference */}
-<div className="mt-6">
-  <label htmlFor="workPreferences" className={labelClass}>
-    Work Preferences *
-  </label>
-  <div className="relative">
-    <select
-      id="workPreferences"
-      name="workPreferences"
-      value={formData.workPreferences}
-      onChange={handleChange}
-      className={`${inputClass} appearance-none`}
-      required
-      aria-invalid={!!errors.workPreferences}
-      aria-describedby={errors.workPreferences ? 'pref-err' : undefined}
-    >
-      <option value="">Select Preference</option>
-      <option value="part-time">Part-time</option>
-      <option value="freelance">Freelance</option>
-      <option value="consultancy">Consultancy</option>
-      <option value="remote">Remote</option>
-      <option value="hybrid">Hybrid</option>
-    </select>
-    <svg
-      className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500 dark:text-slate-300"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
-    </svg>
-  </div>
-  {errors.workPreferences && (
-    <p id="pref-err" className={errorClass}>{errors.workPreferences}</p>
-  )}
-</div>
+
+          {/* Work preference */}
+          <div className="mt-6">
+            <label htmlFor="workPreferences" className={labelClass}>
+              Work Preferences *
+            </label>
+            <div className="relative">
+              <select
+                id="workPreferences"
+                name="workPreferences"
+                value={formData.workPreferences}
+                onChange={handleChange}
+                className={`${inputClass} appearance-none`}
+                required
+                aria-invalid={!!errors.workPreferences}
+                aria-describedby={errors.workPreferences ? 'pref-err' : undefined}
+              >
+                <option value="">Select Preference</option>
+                <option value="part-time">Part-time</option>
+                <option value="freelance">Freelance</option>
+                <option value="consultancy">Consultancy</option>
+                <option value="remote">Remote</option>
+                <option value="hybrid">Hybrid</option>
+              </select>
+              <svg
+                className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500 dark:text-slate-300"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
+            {errors.workPreferences && (
+              <p id="pref-err" className={errorClass}>{errors.workPreferences}</p>
+            )}
+          </div>
 
           {/* GitHub (optional) */}
           <div className="mt-6">
@@ -542,6 +593,31 @@ export default function SeniorRegister() {
             </div>
           )}
 
+          {/* 🔧 CHANGE: single View Resume button that saves using saveResumeToLocal */}
+          <button
+            type="button"
+            onClick={() => {
+              // save the latest form to same storage used by ResumePage
+              saveResumeToLocal({
+                fullName: formData.name,
+                age: formData.age,
+                gender: formData.gender,
+                location: formData.location,
+                skills: formData.skills,
+                experience: formData.experience,
+                email: formData.contact,
+                linkedin: formData.linkedin,
+                github: formData.github,
+                workPreference: formData.workPreferences,
+                photo: formData.profilePhotoUrl || null,
+              });
+              router.push('/senior/resume');
+            }}
+            className="mt-8 w-full bg-slate-700 text-white py-3 rounded-xl font-semibold hover:bg-slate-800 transition"
+          >
+            View & Download Your Resume
+          </button>
+
           {/* Files */}
           <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
@@ -558,7 +634,9 @@ export default function SeniorRegister() {
               />
               {errors.resume && <p id="resume-err" className={errorClass}>{errors.resume}</p>}
               {formData.resume && (
-                <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">Selected: {formData.resume.name}</p>
+                <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+                  Selected: {formData.resume.name}
+                </p>
               )}
             </div>
 
@@ -582,7 +660,9 @@ export default function SeniorRegister() {
                     alt="Profile preview"
                     className="h-14 w-14 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-white/15"
                   />
-                  <span className="text-xs text-slate-600 dark:text-slate-400">Preview (not yet uploaded)</span>
+                  <span className="text-xs text-slate-600 dark:text-slate-400">
+                    Preview (not yet uploaded)
+                  </span>
                 </div>
               )}
             </div>

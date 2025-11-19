@@ -3,9 +3,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-// 🔧 CHANGE: also import loadResumeFromLocal
-import { saveResumeToLocal, loadResumeFromLocal } from "@/utils/storeResume";
-
+import {
+  saveResumeToLocal,
+  loadResumeFromLocal,
+  clearResumeFromLocal,
+} from '@/utils/storeResume';
 
 /* ------------------- Helper Functions ------------------- */
 
@@ -59,27 +61,27 @@ export default function SeniorRegister() {
     linkedin: '',
     github: '',
     resume: null,
-    profilePhoto: null,      // file
-    profilePhotoUrl: '',     // URL fetched from LinkedIn avatar
+    profilePhoto: null, // file
+    profilePhotoUrl: '', // URL fetched from LinkedIn avatar
   });
 
-  // 🔧 CHANGE: use this to repopulate form when user comes back
+  // ✅ When user comes back, repopulate from local storage
   useEffect(() => {
     const saved = loadResumeFromLocal();
     if (saved) {
       setFormData((prev) => ({
         ...prev,
-        name: saved.fullName || "",
-        age: saved.age || "",
-        gender: saved.gender || "",
-        location: saved.location || "",
-        skills: saved.skills || "",
-        experience: saved.experience || "",
-        contact: saved.email || "",
-        linkedin: saved.linkedin || "",
-        github: saved.github || "",
-        workPreferences: saved.workPreference || "",
-        profilePhotoUrl: saved.photo || "",
+        name: saved.fullName || '',
+        age: saved.age || '',
+        gender: saved.gender || '',
+        location: saved.location || '',
+        skills: saved.skills || '',
+        experience: saved.experience || '',
+        contact: saved.email || '',
+        linkedin: saved.linkedin || '',
+        github: saved.github || '',
+        workPreferences: saved.workPreference || '',
+        profilePhotoUrl: saved.photo || '',
       }));
     }
   }, []);
@@ -124,6 +126,7 @@ export default function SeniorRegister() {
   const handleChange = (e) => {
     const { name, value, files, type } = e.target;
 
+    // File inputs
     if (files) {
       const file = files[0];
 
@@ -160,6 +163,7 @@ export default function SeniorRegister() {
       return;
     }
 
+    // Text / number inputs
     setErrors((prev) => ({ ...prev, [name]: undefined }));
 
     if (name === 'linkedin') {
@@ -242,14 +246,14 @@ export default function SeniorRegister() {
         gender: formData.gender || null,
         location: formData.location.trim(),
         skills: skillsArray,
-        experience: Number(formData.experience),
         preference: formData.workPreferences,
+        experience: Number(formData.experience),
         linkedin: normalizeLinkedInUrl(formData.linkedin),
         github: formData.github.trim() || null,
         profilePhotoUrl: formData.profilePhotoUrl || null,
       };
 
-      // still save to local for dashboard / resume
+      // ✅ Save latest to local (optional, not really needed here)
       saveResumeToLocal({
         fullName: formData.name,
         age: formData.age,
@@ -264,19 +268,19 @@ export default function SeniorRegister() {
         photo: formData.profilePhotoUrl || null,
       });
 
-      // Save to DB
-      await fetch("/api/senior/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      // ✅ Save to DB
+      await fetch('/api/senior/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
       });
 
-      // Log in locally
+      // ✅ After successful registration: clear local resume
+      clearResumeFromLocal();
+
+      // ✅ Log in and redirect
       login(userData);
-
-      // Redirect
-      router.push("/senior/dashboard");
-
+      router.push('/senior/dashboard');
     } finally {
       setSubmitting(false);
     }
@@ -303,11 +307,14 @@ export default function SeniorRegister() {
           onSubmit={handleSubmit}
           className="rounded-2xl border border-slate-200/70 bg-white/70 p-6 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5 sm:p-8"
           noValidate
+          autoComplete="off"
         >
           {/* Name + Age */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label htmlFor="name" className={labelClass}>Full Name *</label>
+              <label htmlFor="name" className={labelClass}>
+                Full Name *
+              </label>
               <input
                 id="name"
                 type="text"
@@ -315,16 +322,21 @@ export default function SeniorRegister() {
                 value={formData.name}
                 onChange={handleChange}
                 className={inputClass}
-                autoComplete="name"
                 required
                 aria-invalid={!!errors.name}
                 aria-describedby={errors.name ? 'name-err' : undefined}
               />
-              {errors.name && <p id="name-err" className={errorClass}>{errors.name}</p>}
+              {errors.name && (
+                <p id="name-err" className={errorClass}>
+                  {errors.name}
+                </p>
+              )}
             </div>
 
             <div>
-              <label htmlFor="age" className={labelClass}>Age * (60+)</label>
+              <label htmlFor="age" className={labelClass}>
+                Age * (60+)
+              </label>
               <input
                 id="age"
                 type="number"
@@ -337,14 +349,20 @@ export default function SeniorRegister() {
                 aria-invalid={!!errors.age}
                 aria-describedby={errors.age ? 'age-err' : undefined}
               />
-              {errors.age && <p id="age-err" className={errorClass}>{errors.age}</p>}
+              {errors.age && (
+                <p id="age-err" className={errorClass}>
+                  {errors.age}
+                </p>
+              )}
             </div>
           </div>
 
           {/* Gender + Location */}
           <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label htmlFor="gender" className={labelClass}>Gender</label>
+              <label htmlFor="gender" className={labelClass}>
+                Gender
+              </label>
               <div className="relative">
                 <select
                   id="gender"
@@ -373,7 +391,9 @@ export default function SeniorRegister() {
             </div>
 
             <div>
-              <label htmlFor="location" className={labelClass}>Location *</label>
+              <label htmlFor="location" className={labelClass}>
+                Location *
+              </label>
               <input
                 id="location"
                 type="text"
@@ -385,13 +405,19 @@ export default function SeniorRegister() {
                 aria-invalid={!!errors.location}
                 aria-describedby={errors.location ? 'location-err' : undefined}
               />
-              {errors.location && <p id="location-err" className={errorClass}>{errors.location}</p>}
+              {errors.location && (
+                <p id="location-err" className={errorClass}>
+                  {errors.location}
+                </p>
+              )}
             </div>
           </div>
 
           {/* Skills */}
           <div className="mt-6">
-            <label htmlFor="skills" className={labelClass}>Skills (comma separated) *</label>
+            <label htmlFor="skills" className={labelClass}>
+              Skills (comma separated) *
+            </label>
             <input
               id="skills"
               type="text"
@@ -404,7 +430,11 @@ export default function SeniorRegister() {
               aria-invalid={!!errors.skills}
               aria-describedby={errors.skills ? 'skills-err' : undefined}
             />
-            {errors.skills && <p id="skills-err" className={errorClass}>{errors.skills}</p>}
+            {errors.skills && (
+              <p id="skills-err" className={errorClass}>
+                {errors.skills}
+              </p>
+            )}
             {formData.skills.trim() && (
               <div className="mt-2 flex flex-wrap gap-2">
                 {formData.skills
@@ -426,7 +456,9 @@ export default function SeniorRegister() {
 
           {/* Experience */}
           <div className="mt-6">
-            <label htmlFor="experience" className={labelClass}>Years of Experience *</label>
+            <label htmlFor="experience" className={labelClass}>
+              Years of Experience *
+            </label>
             <input
               id="experience"
               type="number"
@@ -439,12 +471,18 @@ export default function SeniorRegister() {
               aria-invalid={!!errors.experience}
               aria-describedby={errors.experience ? 'exp-err' : undefined}
             />
-            {errors.experience && <p id="exp-err" className={errorClass}>{errors.experience}</p>}
+            {errors.experience && (
+              <p id="exp-err" className={errorClass}>
+                {errors.experience}
+              </p>
+            )}
           </div>
 
           {/* Email */}
           <div className="mt-6">
-            <label htmlFor="contact" className={labelClass}>Email Address *</label>
+            <label htmlFor="contact" className={labelClass}>
+              Email Address *
+            </label>
             <input
               id="contact"
               type="email"
@@ -453,16 +491,21 @@ export default function SeniorRegister() {
               onChange={handleChange}
               className={inputClass}
               required
-              autoComplete="email"
               aria-invalid={!!errors.contact}
               aria-describedby={errors.contact ? 'contact-err' : undefined}
             />
-            {errors.contact && <p id="contact-err" className={errorClass}>{errors.contact}</p>}
+            {errors.contact && (
+              <p id="contact-err" className={errorClass}>
+                {errors.contact}
+              </p>
+            )}
           </div>
 
           {/* LinkedIn (required) + Fetch */}
           <div className="mt-6">
-            <label htmlFor="linkedin" className={labelClass}>LinkedIn Profile Link *</label>
+            <label htmlFor="linkedin" className={labelClass}>
+              LinkedIn Profile Link *
+            </label>
             <div className="flex gap-3">
               <input
                 id="linkedin"
@@ -486,7 +529,11 @@ export default function SeniorRegister() {
                 {fetchState === 'loading' ? 'Fetching…' : 'Fetch'}
               </button>
             </div>
-            {errors.linkedin && <p id="linkedin-err" className={errorClass}>{errors.linkedin}</p>}
+            {errors.linkedin && (
+              <p id="linkedin-err" className={errorClass}>
+                {errors.linkedin}
+              </p>
+            )}
           </div>
 
           {/* Work preference */}
@@ -524,13 +571,17 @@ export default function SeniorRegister() {
               </svg>
             </div>
             {errors.workPreferences && (
-              <p id="pref-err" className={errorClass}>{errors.workPreferences}</p>
+              <p id="pref-err" className={errorClass}>
+                {errors.workPreferences}
+              </p>
             )}
           </div>
 
           {/* GitHub (optional) */}
           <div className="mt-6">
-            <label htmlFor="github" className={labelClass}>GitHub Profile Link (optional)</label>
+            <label htmlFor="github" className={labelClass}>
+              GitHub Profile Link (optional)
+            </label>
             <input
               id="github"
               type="url"
@@ -542,7 +593,11 @@ export default function SeniorRegister() {
               aria-invalid={!!errors.github}
               aria-describedby={errors.github ? 'github-err' : undefined}
             />
-            {errors.github && <p id="github-err" className={errorClass}>{errors.github}</p>}
+            {errors.github && (
+              <p id="github-err" className={errorClass}>
+                {errors.github}
+              </p>
+            )}
           </div>
 
           {/* Prefill card */}
@@ -562,7 +617,9 @@ export default function SeniorRegister() {
                 )}
                 <div>
                   <p className="text-sm font-semibold">
-                    {fetchState === 'notfound' ? 'LinkedIn found (no avatar)' : 'LinkedIn details found'}
+                    {fetchState === 'notfound'
+                      ? 'LinkedIn found (no avatar)'
+                      : 'LinkedIn details found'}
                   </p>
                   <p className="text-xs opacity-80">{prefill.name || 'Name not detected'}</p>
                 </div>
@@ -593,11 +650,11 @@ export default function SeniorRegister() {
             </div>
           )}
 
-          {/* 🔧 CHANGE: single View Resume button that saves using saveResumeToLocal */}
+          {/* View Resume Button – uses latest values */}
           <button
             type="button"
             onClick={() => {
-              // save the latest form to same storage used by ResumePage
+              // ✅ ALWAYS save latest data before viewing resume
               saveResumeToLocal({
                 fullName: formData.name,
                 age: formData.age,
@@ -621,7 +678,9 @@ export default function SeniorRegister() {
           {/* Files */}
           <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label htmlFor="resume" className={labelClass}>Resume (PDF/DOC, max 5 MB)</label>
+              <label htmlFor="resume" className={labelClass}>
+                Resume (PDF/DOC, max 5 MB)
+              </label>
               <input
                 id="resume"
                 type="file"
@@ -632,7 +691,11 @@ export default function SeniorRegister() {
                 aria-invalid={!!errors.resume}
                 aria-describedby={errors.resume ? 'resume-err' : undefined}
               />
-              {errors.resume && <p id="resume-err" className={errorClass}>{errors.resume}</p>}
+              {errors.resume && (
+                <p id="resume-err" className={errorClass}>
+                  {errors.resume}
+                </p>
+              )}
               {formData.resume && (
                 <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
                   Selected: {formData.resume.name}
@@ -641,7 +704,9 @@ export default function SeniorRegister() {
             </div>
 
             <div>
-              <label htmlFor="profilePhoto" className={labelClass}>Profile Photo (max 3 MB)</label>
+              <label htmlFor="profilePhoto" className={labelClass}>
+                Profile Photo (max 3 MB)
+              </label>
               <input
                 id="profilePhoto"
                 type="file"
@@ -652,7 +717,11 @@ export default function SeniorRegister() {
                 aria-invalid={!!errors.profilePhoto}
                 aria-describedby={errors.profilePhoto ? 'photo-err' : undefined}
               />
-              {errors.profilePhoto && <p id="photo-err" className={errorClass}>{errors.profilePhoto}</p>}
+              {errors.profilePhoto && (
+                <p id="photo-err" className={errorClass}>
+                  {errors.profilePhoto}
+                </p>
+              )}
               {photoPreview && (
                 <div className="mt-3 flex items-center gap-3">
                   <img
@@ -670,7 +739,9 @@ export default function SeniorRegister() {
 
           {/* Note */}
           <div className="mt-6 rounded-xl border border-blue-200/60 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-400/20 dark:bg-blue-900/20 dark:text-blue-200">
-            <strong>Note:</strong> By registering, you agree to our 10% commission fee on successful job matches. The fee is only charged when you get hired through our platform.
+            <strong>Note:</strong> By registering, you agree to our 10% commission fee on
+            successful job matches. The fee is only charged when you get hired through our
+            platform.
           </div>
 
           {/* Submit */}
